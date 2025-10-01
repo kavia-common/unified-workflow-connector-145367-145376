@@ -23,38 +23,102 @@ export default function Dashboard() {
   }, []);
 
   const loadDashboardData = async () => {
+    setLoading(true);
+
+    // Helper to log richer error details in a consistent way
+    type ErrorLike = {
+      name?: string;
+      status?: number | string;
+      code?: string | number;
+      cause?: unknown;
+      stack?: string;
+      message?: string;
+      [key: string]: unknown;
+    };
+
+    const logError = (label: string, err: unknown, extra?: Record<string, unknown>) => {
+      // Derive a helpful message
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'string'
+          ? err
+          : JSON.stringify(err);
+
+      const errorObj: ErrorLike =
+        err && typeof err === 'object'
+          ? (err as ErrorLike)
+          : { error: err };
+
+      // We intentionally allow console.error here for developer diagnostics
+      // eslint-disable-next-line no-console
+      console.error(`[Dashboard] ${label}`, {
+        message,
+        ...(extra || {}),
+        // Some fetch libs put details on these common fields
+        name: errorObj?.name,
+        status: errorObj?.status,
+        code: errorObj?.code,
+        cause: errorObj?.cause,
+        stack: errorObj?.stack,
+        raw: errorObj,
+      });
+    };
+
     try {
-      setLoading(true);
-      
       // Load connectors data (fallback to mock data)
-      const connectorsResponse = await get<Connector[]>('/connectors');
-      if (connectorsResponse.status === 'success') {
-        setConnectors(connectorsResponse.data || []);
-      } else {
-        // Mock data fallback
+      try {
+        const connectorsResponse = await get<Connector[]>('/connectors');
+        if (connectorsResponse.status === 'success') {
+          setConnectors(connectorsResponse.data || []);
+        } else {
+          logError('Connectors fetch returned non-success status', connectorsResponse, {
+            endpoint: '/connectors',
+            response: connectorsResponse,
+          });
+          setConnectors(mockConnectors);
+        }
+      } catch (err) {
+        logError('Connectors fetch failed', err, { endpoint: '/connectors' });
         setConnectors(mockConnectors);
       }
 
       // Load analytics data (fallback to mock data)
-      const analyticsResponse = await get<Analytics>('/analytics');
-      if (analyticsResponse.status === 'success') {
-        setAnalytics(analyticsResponse.data || null);
-      } else {
-        // Mock data fallback
+      try {
+        const analyticsResponse = await get<Analytics>('/analytics');
+        if (analyticsResponse.status === 'success') {
+          setAnalytics(analyticsResponse.data || null);
+        } else {
+          logError('Analytics fetch returned non-success status', analyticsResponse, {
+            endpoint: '/analytics',
+            response: analyticsResponse,
+          });
+          setAnalytics(mockAnalytics);
+        }
+      } catch (err) {
+        logError('Analytics fetch failed', err, { endpoint: '/analytics' });
         setAnalytics(mockAnalytics);
       }
 
       // Load recent activity (fallback to mock data)
-      const activityResponse = await get<ActivityItem[]>('/activity/recent');
-      if (activityResponse.status === 'success') {
-        setRecentActivity(activityResponse.data || []);
-      } else {
-        // Mock data fallback
+      try {
+        const activityResponse = await get<ActivityItem[]>('/activity/recent');
+        if (activityResponse.status === 'success') {
+          setRecentActivity(activityResponse.data || []);
+        } else {
+          logError('Activity fetch returned non-success status', activityResponse, {
+            endpoint: '/activity/recent',
+            response: activityResponse,
+          });
+          setRecentActivity(mockActivity);
+        }
+      } catch (err) {
+        logError('Activity fetch failed', err, { endpoint: '/activity/recent' });
         setRecentActivity(mockActivity);
       }
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      // Use mock data on error
+    } catch (outerErr) {
+      // Final catch-all for any unexpected issues within the loader
+      logError('Failed to load dashboard data (unexpected error)', outerErr);
       setConnectors(mockConnectors);
       setAnalytics(mockAnalytics);
       setRecentActivity(mockActivity);
