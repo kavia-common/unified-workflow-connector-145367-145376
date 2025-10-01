@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className="bg-gray-50">
+      <body suppressHydrationWarning className="bg-gradient-to-b from-blue-500/10 to-gray-50">
         <NotificationProvider>
           <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}

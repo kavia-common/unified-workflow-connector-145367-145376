@@ -89,6 +89,11 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Monitor your integrations and workflows</p>
+          <div className="mt-2">
+            <a href="/connect" className="text-sm text-blue-700 hover:underline">
+              Connect JIRA/Confluence →
+            </a>
+          </div>
         </div>
         <QuickActions />
       </div>

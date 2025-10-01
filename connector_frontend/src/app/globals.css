@@ -33,6 +33,16 @@ body {
   line-height: 1.6;
 }
 
+/* Link styling aligned with Ocean Professional */
+a {
+  color: var(--color-primary);
+}
+
+a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
